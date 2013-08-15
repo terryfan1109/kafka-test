@@ -42,6 +42,7 @@ public class TestConsumer {
       props.put("zookeeper.session.timeout.ms", "400");
       props.put("zookeeper.sync.time.ms", "200");
       props.put("auto.commit.interval.ms", "1000");
+      props.put("consumer.timeout.ms", "100");
   
       ConsumerConfig config = new ConsumerConfig(props);
       ConsumerConnector client = Consumer.createJavaConsumerConnector(config);
@@ -70,7 +71,7 @@ public class TestConsumer {
   
       for (int i = 0; i < workers.length; ++i) {
         ConsumerWorker worker = new ConsumerWorker(streams.get(i), messageQueue,
-            reportor);
+            reportor, i);
         workers[i] = worker;
       }
   

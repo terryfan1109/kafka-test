@@ -29,7 +29,8 @@ public class ProducerWorker implements Runnable {
 
   @Override
   public void run() {
-
+    long count = 0;
+    
     try {
       while (!exit.get()) {
         Message msg = queue.poll(1, TimeUnit.SECONDS);
@@ -39,6 +40,10 @@ public class ProducerWorker implements Runnable {
                 msg.topic, msg.body);
 
             client.send(message);
+            ++count;
+            if (0 == count % 1000) {
+              System.out.print(".");
+            }
             reportor.addSuccess();
 
             msg = queue.poll(1, TimeUnit.SECONDS);

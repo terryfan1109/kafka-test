@@ -34,23 +34,21 @@ public class ConsumerWorker implements Runnable {
   public void run() {
 
     long count = 0;
+    long countOfRetry = 0;
 
     try {
       ConsumerIterator<byte[], byte[]> it = stream.iterator();
 
       while (!exit.get()) {
         Message msg = queue.poll(1, TimeUnit.SECONDS);
+
         while (null != msg) {
-          try {            
+          try {
             if (it.hasNext()) {
+              countOfRetry = 0;
               MessageAndMetadata<byte[], byte[]> receivedMessage = it.next();
 
               if (receivedMessage.message().length > 0) {
-                try {
-                  System.out.println(new String(receivedMessage.message(), "UTF-8"));
-                } catch (Throwable e) {
-                  //... 
-                }
                 ++count;
                 reportor.addSuccess();
               } else {
@@ -58,9 +56,19 @@ public class ConsumerWorker implements Runnable {
               }
             }
           } catch (ConsumerTimeoutException e) {
+            ++countOfRetry;
+            if (0 == countOfRetry % 20) {
+              System.out.print("X");
+            }
+
             queue.put(msg);
-            Thread.sleep(500);
+            try {
+              Thread.sleep(100);
+            } catch (InterruptedException ignored) {
+              // ...
+            }
           }
+
           msg = queue.poll(1, TimeUnit.SECONDS);
         }
       }
